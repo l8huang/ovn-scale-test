@@ -353,6 +353,8 @@ function ip_addr_del {
         return
     fi
 
+    # avoid secondary addresses deleted with primary one
+    sudo sysctl -w net.ipv4.conf.all.promote_secondaries=1
     echo "Delete $ip from $dev"
     sudo ip addr del $ip dev $dev
 
@@ -706,7 +708,8 @@ function start_ovn {
     else
         if $ovn ; then
             run ovn-controller --detach --no-chdir --pidfile \
-                    -vconsole:off -vsyslog:off -vfile:info --log-file
+                    -vconsole:off -vsyslog:off -vfile:info --log-file \
+                    -l `get_ip_from_cidr $SANDBOX_BIND_IP`:10000
         fi
     fi
 }
