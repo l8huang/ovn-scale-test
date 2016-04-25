@@ -15,6 +15,7 @@
 
 import sys
 import itertools
+from six.moves import StringIO
 from rally_ovs.plugins.ovs.ovsclients import *
 from rally_ovs.plugins.ovs.utils import get_ssh_from_credential
 
