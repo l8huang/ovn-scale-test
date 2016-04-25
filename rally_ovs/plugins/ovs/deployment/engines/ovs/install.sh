@@ -38,7 +38,9 @@ function install_ovs {
                 return
             else
                 echo "git pull"
-                git rebase
+                git stash
+                git reset --hard origin/master
+                #git rebase
             fi
         fi
     else
