@@ -250,9 +250,7 @@ class OvnScenario(scenario.OvsScenario):
 
 
     @atomic.action_timer("ovn_network.bind_port")
-    def _bind_ports(self, lports, sandboxes, port_bind_args):
-        port_bind_args = port_bind_args or {}
-        wait_up = port_bind_args.get("wait_up", False)
+    def _bind_ports(self, lports, sandboxes):
 
         sandbox_num = len(sandboxes)
         lport_num = len(lports)
@@ -280,21 +278,28 @@ class OvnScenario(scenario.OvsScenario):
             ovs_vsctl.flush()
             j += 1
 
-        if wait_up:
-            self._wait_up_port(lports)
-
 
     @atomic.action_timer("ovn_network.wait_port_up")
-    def _wait_up_port(self, lports):
+    def _wait_up_port(self, lports, sandboxes):
         LOG.info("wait port up" )
+
+        sandbox_num = len(sandboxes)
+        lport_num = len(lports)
+        lport_per_sandbox = (lport_num + sandbox_num - 1) / sandbox_num
+
         ovn_nbctl = self.controller_client("ovn-nbctl")
         ovn_nbctl.set_sandbox("controller-sandbox")
         ovn_nbctl.enable_batch_mode(True)
 
-        for lport in lports:
-            ovn_nbctl.wait_until('Logical_Port', lport["name"], ('up', 'true'))
+        for i in range(0, len(lports), lport_per_sandbox):
+            lport_slice = lports[i:i+lport_per_sandbox]
 
-        ovn_nbctl.flush()
+            for lport in lport_slice:
+                port_name = lport["name"]
+                LOG.info("wait %s up" % (port_name))
+                ovn_nbctl.wait_until('Logical_Port', port_name, ('up', 'true'))
+
+            ovn_nbctl.flush()
 
 
 

@@ -44,7 +44,13 @@ class OvnNetwork(ovn.OvnScenario):
         lswitches = self._create_networks(network_create_args)
         for lswitch in lswitches:
             lports = self._create_lports(lswitch, port_create_args, ports_per_network)
-            self._bind_ports(lports, sandboxes, port_bind_args)
+            self._bind_ports(lports, sandboxes)
+
+        port_bind_args = port_bind_args or {}
+        wait_up = port_bind_args.get("wait_up", False)
+
+        if wait_up:
+            self._wait_up_port(lports, sandboxes)
 
 
     def bind_ports(self):
