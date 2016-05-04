@@ -657,10 +657,11 @@ EOF
         run ovs-vsctl --no-wait set open_vswitch . system-type="sandbox"
 
         if $ovn ; then
-            OVN_REMOTE="tcp:$CON_IP:6640"
-
             ip_addr_add $host_ip $device
             SANDBOX_BIND_IP=$host_ip
+
+            LOCAL_ADDR=`get_ip_from_cidr $SANDBOX_BIND_IP`
+            OVN_REMOTE="tcp:$CON_IP:6640:$LOCAL_ADDR"
 
             run ovs-vsctl --no-wait \
                 -- set open_vswitch . external-ids:system-id="$OVN_UUID" \
@@ -708,8 +709,7 @@ function start_ovn {
     else
         if $ovn ; then
             run ovn-controller --detach --no-chdir --pidfile \
-                    -vconsole:off -vsyslog:off -vfile:info --log-file \
-                    -l `get_ip_from_cidr $SANDBOX_BIND_IP`:10000
+                    -vconsole:off -vsyslog:off -vfile:info --log-file
         fi
     fi
 }
